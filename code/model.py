@@ -1,32 +1,49 @@
 import numpy as np
 import tensorflow as tf
 import model_funcs as transformer
+from scipy import signal
 
-# TODO: Define the model architecture here
 class SongMasher(tf.keras.Model):
-    def __init__(self):
+    def __init__(self, spectrogram_width, spectrogram_height):
         super(SongMasher, self).__init__()
 
-        # Define batch size and optimizer/learning rate
+        # Define hyperparameters
         self.batch_size = 2
         self.learning_rate = 0.001
+        self.embedding_size = 256
+        self.width = spectrogram_width
+        self.height = spectrogram_height
 
-        # Define encoder layer
-        self.encoder_attention = tf.keras.layers.Attention()
-        self.encoder_norm = tf.keras.layers.LayerNormalization(axis=-1)
+        # Define K, V, Q matrices
+        self.K = tf.random.truncated_normal(shape=[self.width, self.embedding_size], stddev=0.01, dtype=tf.float32)
+        self.V = tf.random.truncated_normal(shape=[self.width, self.embedding_size], stddev=0.01, dtype=tf.float32)
+        self.Q = tf.random.truncated_normal(shape=[self.width, self.embedding_size], stddev=0.01, dtype=tf.float32)
+
+        # Define encoder layers
+        self.encoder = tf.keras.layers.LSTM(self.embedding_size, activation='tanh', return_state=True, return_sequences=True)
+        self.encoder_attention = transformer.Transformer_Block(self.embedding_size)
 
         # Define decoder layer
-        self.decoder = tf.keras.layers.Attention()
+        self.decoder = tf.keras.layers.LSTM(self.embedding_size, activation='tanh', return_state=True, return_sequences=True)
+        self.decoder_dense = tf.keras.layers.Dense(self.height)
 
     @tf.function
-    def call(self, originals):
+    def call(self, originals1, originals2):
         """
-        :param originals: sliced spectrograms of the original two songs that will make up a mashup
-        :return artif_mash: The spectrogram of the mashup generated from the model
+        :param originals1: spectrogram of one of the original two songs that will be used to generate a mashup
+        :param originals2: spectrogram of the other original song that will be used to generate a mashup
+        :return: the spectrogram of the mashup generated from the model
         """
-
-        songs_encoded = self.encoder(originals)
-        artif_mash = self.decoder(songs_encoded)
+        
+        # Generate encodings of the original two songs using attention
+        all_states1, fin_state1, cell_state1 = self.encoder(originals1, initial_state=None)
+        attention1 = self.encoder_attention(all_states1)
+        all_states2, fin_state2, cell_state2 = self.encoder(originals2, initial_state=None)
+        attention2 = self.encoder_attention(all_states2)
+        # Generate the mashup by using the encodings found above with the original two songs
+        orig_with_context = tf.concat([attention1, attention2, originals1, originals2], axis=-1)
+        all_states3, fin_state3, cell_state3 = self.decoder(orig_with_context, [fin_state1, fin_state2])
+        artif_mash = self.decoder_dense(all_states3)
 
         return artif_mash
 
@@ -36,24 +53,21 @@ class SongMasher(tf.keras.Model):
 
         :param artif: artificial spectrogram generated from model
         :param real: real spectrogram downloaded from YouTube
-        :return cross_corr: cross correlation between the two spectrograms
-        """
-        return 1
-
-    def loss_function(self, prbs, labels, mask):
-        """
-        Calculates the model cross-entropy loss after one forward pass
-        Please use reduce sum here instead of reduce mean to make things easier in calculating per symbol accuracy.
-
-        :param prbs:  float tensor, word prediction probabilities [batch_size x window_size x english_vocab_size]
-        :param labels:  integer tensor, word prediction labels [batch_size x window_size]
-        :param mask:  tensor that acts as a padding mask [batch_size x window_size]
-        :return: the loss of the model as a tensor
+        :return: cross correlation between the two spectrograms
         """
 
-        raw_loss = tf.keras.losses.sparse_categorical_crossentropy(labels, prbs)
-        masked_loss = raw_loss * mask
-        return tf.reduce_sum(masked_loss)
+        return signal.correlate(artif, real, mode="valid")[0][0]
+
+    def loss_function(self, artif, real):
+        """
+        Calculates the model loss after one forward pass.
+
+        :param artif: artificial spectrogram generated from model
+        :param real: real spectrogram downloaded from YouTube
+        :return: 1 - cross correlation between the two spectrograms
+        """
+
+        return tf.reduce_mean(tf.square(artif - real))
 
 
     def __call__(self, *args, **kwargs):
