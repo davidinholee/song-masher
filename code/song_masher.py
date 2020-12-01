@@ -85,25 +85,21 @@ def test(model, test_originals, test_mashes):
 def main():
     print("Running preprocessing...")
     # Gather preprocessed training and testing data
-    train_originals, train_mashes, test_originals, test_mashes = get_data()
-    # Convert RGB values to a 1-D scalar
-    train_originals = convert_to_rgb(train_originals)
-    train_mashes = convert_to_rgb(train_mashes)
-    test_originals = convert_to_rgb(train_originals)
-    test_mashes = convert_to_rgb(train_mashes)
+    train_orig_mag, train_mash_mag, test_orig_mag, test_mash_mag = get_magnitude_data(0)
+    train_orig_pha, train_mash_pha, test_orig_pha, test_mash_pha = get_phase_data(0)
     print("Preprocessing complete.")
 
-    train_originals = np.random.normal(0, 0.1, (4, 2, 50, 20))
-    train_mashes = np.random.normal(0, 0.1, (4, 50, 20))
-    test_originals = np.random.normal(0, 0.1, (4, 2, 50, 20))
-    test_mashes = np.random.normal(0, 0.1, (4, 50, 20))
-
-    # Train and test model for 1 epoch.
+    # Create models for both the magnitude and phase of the signal
+    magnitude_model = SongMasher(train_orig_mag.shape[2], train_orig_mag.shape[3])
+    phase_model = SongMasher(train_orig_pha.shape[2], train_orig_pha.shape[3])
+    # Train and test model for 5 epochs.
     for epoch in range(5):
-        model = SongMasher(train_originals.shape[2], train_originals.shape[3]) 
-        train(model, train_originals, train_mashes)
-        loss = test(model, test_originals, test_mashes)
-        print("Epoch %d Test Loss: %.3f" % (epoch, loss), flush=True)
+        train(magnitude_model, train_orig_mag, train_mash_mag)
+        train(phase_model, train_orig_pha, train_mash_pha)
+        mag_loss = test(magnitude_model, test_orig_mag, test_mash_mag)
+        pha_loss = test(phase_model, test_orig_pha, test_mash_pha)
+        print("Epoch %d Mag Test Loss: %.3f" % (epoch, mag_loss), flush=True)
+        print("Epoch %d Pha Test Loss: %.3f" % (epoch, pha_loss), flush=True)
 
 
 if __name__ == '__main__':
