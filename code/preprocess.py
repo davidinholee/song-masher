@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 SAMPLE_RATE = 8000
 WINDOW_LENGTH = 512
 NFFT = 512
+MAG_MAX = 80
 
 def convert_mp3_to_wav(file_path_in, file_path_out):
     """
@@ -37,6 +38,8 @@ def generate_spectrogram(file_path_in, file_path_out, plot_title):
 
     # Load in signal array
     aud_data = np.load(file_path_in)[:,0]
+    # Denormalize signal magnitudes
+    aud_data[0] = aud_data[0] * 60
     if (len(aud_data.shape) == 3):
         # Mashup songs
         magnitude = np.transpose(aud_data[0])
@@ -82,6 +85,8 @@ def generate_audio(file_path_in, file_path_out):
 
     # Load in signal array
     aud_data = np.load(file_path_in)[:,0]
+    # Denormalize signal magnitudes
+    aud_data[0] = aud_data[0] * 60
     if (len(aud_data.shape) == 3):
         # Mashup song
         magnitude = np.transpose(aud_data[0])
@@ -135,8 +140,9 @@ def convert_mashup_to_array(file_path_in, file_path_out):
             signal[0,index] = np.transpose(magnitude)
             signal[1,index] = np.transpose(phase)
 
+    # Normalize array so that magnitude values are between 0 and 1 (phase values are already normalized)
+    signal[0] = signal[0] / MAG_MAX
     # Save array to disk
-    print(signal.shape)
     np.save(file_path_out + "mashup", signal)
 
 def convert_original_to_array(file_path_in, file_path_out):
@@ -174,8 +180,9 @@ def convert_original_to_array(file_path_in, file_path_out):
             signal[0, first, second] = np.transpose(magnitude)
             signal[1, first, second] = np.transpose(phase)
 
+    # Normalize array so that magnitude values are between 0 and 1 (phase values are already normalized)
+    signal[0] = signal[0] / MAG_MAX
     # Save array to disk
-    print(signal.shape)
     np.save(file_path_out + "original", signal)
 
 def get_data(file_path_orig, file_path_mash, split):
