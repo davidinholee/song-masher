@@ -5,36 +5,7 @@ import numpy as np
 import math
 from PIL import Image
 import time
-# from pydub import AudioSegment
-
-audio_dir = "/Users/jamescai/Desktop/CS1470/final-project/audio/"
-ori_dir = "/Users/jamescai/Desktop/CS1470/final-project/original/"
-spect_dir = "/Users/jamescai/Desktop/CS1470/final-project/spect/"
-arrays_dir = "/Users/jamescai/Desktop/CS1470/final-project/arrays/"
-rec_dir = "/Users/jamescai/Desktop/CS1470/final-project/recovered/"
-mp3_dir = "/Users/jamescai/Desktop/CS1470/final-project/mp3/"
-
-audio_clips = os.listdir(audio_dir)
-audio_clips = audio_clips[1:]
-# print(audio_clips)
-rate, audData = scipy.io.wavfile.read(audio_dir + audio_clips[0])
-
-"""
-mp3_clips = os.listdir(mp3_dir)
-# mp3_clips = audio_clips[1:]
-
-for i in mp3_clips:
-    sound = AudioSegment.from_mp3(mp3_dir + i)
-    sound.export(audio_dir + "fil.wav", format="wav")
-"""
-
-"""
-channel1 = audData[:,0]
-channel2 = audData[:,1]
-
-# This should be the first 2 minutes of the song
-signal_fragment = channel1[1*rate:20*rate]
-"""
+from pydub import AudioSegment
 
 FFT_LENGTH = 1024
 WINDOW_LENGTH = 512
@@ -44,6 +15,12 @@ magnitudeMax = float("-inf")
 phaseMin = float("inf")
 phaseMax = float("-inf")
 
+def convertMp3ToWav(filePath):
+    mp3_clips = os.listdir(filePath)
+    mp3_clips = audio_clips[mp3_clips]
+    for i in mp3_clips:
+        sound = AudioSegment.from_mp3(mp3_dir + i)
+        sound.export(audio_dir + i + ".wav", format="wav")
 
 def amplifyMagnitudeByLog(d):
     return 188.301 * math.log10(d + 1)
@@ -74,8 +51,6 @@ def generateLinearScale(magnitudePixels, phasePixels,
             RGBint = (int(red)<<16) + (int(green)<<8) + int(blue)
             rgbSingleArray[h,w] = RGBint
     rgbSingleArray = np.transpose(rgbSingleArray)
-    # print(rgbSingleArray.shape)
-    # print(rgbArray.shape)
     return rgbArray, rgbSingleArray, magnitudePixels, phasePixels
 
 def recoverLinearScale(rgbArray, magnitudeMin, magnitudeMax, 
@@ -180,12 +155,7 @@ def convertToMashupArray(filePath):
         phase = np.transpose(phase)
         arr_mag[fst] = mag
         arr_phase[fst] = phase
-        
-        """
-        img.save(spect_dir + name + ".png","PNG")
-        np.save(arrays_dir + name, rgbSingleArray)
-        """
-        # recoverSignalFromSpectrogram(spect_dir + name + ".png", name)
+
     print(arr_mag.shape)
     np.save(arrays_dir + "mashup_mag", arr_mag)
     np.save(arrays_dir + "mashup_phase", arr_phase)
@@ -195,6 +165,7 @@ def convertOriginalToArray(filePath):
     # audio_clips = audio_clips[1:]
     print(audio_clips)
     l = int(len(audio_clips)/2)
+    # 4995 for 30 seconds
     arr_mag = np.zeros((l, 2, 20499, 513))
     arr_phase = np.zeros((l, 2, 20499, 513))
     for i in audio_clips:
@@ -212,51 +183,17 @@ def convertOriginalToArray(filePath):
         arr_mag[fst, snd] = mag
         arr_phase[fst, snd] = phase
 
-    """
-    for c in range(0, len(audio_clips), 2):
-        rate1, audData1 = scipy.io.wavfile.read(filePath + audio_clips[c])
-        fchannel1 = audData1[:,0]
-        fchannel2 = audData1[:,1]
-        # This should be the first 2 minutes of the song
-        signal_fragment1 = fchannel1[1*rate1:120*rate1]
-
-        rate2, audData2 = scipy.io.wavfile.read(filePath + audio_clips[c+1])
-        channel1 = audData2[:,0]
-        channel2 = audData2[:,1]
-        # This should be the first 2 minutes of the song
-        signal_fragment2 = channel1[1*rate2:120*rate2]
-
-        count = int(c/2)
-        print(count)
-        img, rgbArray, rgbSingleArray = generateSpectrogramForWave(signal_fragment1)
-        arr[count, 0] = rgbSingleArray
-        img, rgbArray, rgbSingleArray = generateSpectrogramForWave(signal_fragment2)
-        arr[count, 1] = rgbSingleArray
-        """
     print(arr_mag.shape)
     np.save(arrays_dir + "original_mag", arr_mag)
     np.save(arrays_dir + "original_phase", arr_phase)
 
-# convertToMashupArray(audio_dir)
-convertOriginalToArray(ori_dir)
+if __name__ == "__main__":
+    audio_dir = "../audio/"
+    ori_dir = "../original/"
+    spect_dir = "../spect/"
+    arrays_dir = "../arrays/"
+    rec_dir = "../recovered/"
+    mp3_dir = "../mp3/"
 
-"""
-def getRGBfromI(RGBint):
-    blue =  RGBint & 255
-    green = (RGBint >> 8) & 255
-    red =   (RGBint >> 16) & 255
-    return red, green, blue
-
-def convertSingleToRGB(arr):
-    rgb = np.transpose(arr)
-    height = rgb.shape[0]
-    width = rgb.shape[1]
-    rgbArray = np.zeros((height, width, 3), 'uint8')
-    for h in range(height):
-        for w in range(width):
-            red, green, blue = getRGBfromI(rgb[h, w])
-            rgbArray[h,w,0] = int(red)
-            rgbArray[h,w,1] = int(green)
-            rgbArray[h,w,2] = int(blue)
-    return rgbArray
-"""
+    convertOriginalToArray(ori_dir)
+    convertToMashupArray(audio_dir)
