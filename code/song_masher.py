@@ -13,9 +13,9 @@ def train(model, train_originals, train_mashes):
 
 	:param model: the initialized model to use for forward and backward pass
 	:param train_originals: training data, list of the original two songs that were used to create the corresponding mash 
-           of shape (num_examples, 2, spectrogram_width, spectrogram_height)
+                            of shape (num_examples, 2, n_timesteps)
 	:param train_mashes: training labels, list of the mashed songs derived from the corresponding two training data songs
-           of shape (num_examples, spectrogram_width, spectrogram_height)
+                         of shape (num_examples, n_timesteps)
 	:return: None
 	"""
 
@@ -53,9 +53,9 @@ def test(model, test_originals, test_mashes):
 
     :param model: the initialized model to use for forward and backward pass
     :param test_originals: testing data, list of the original two songs that were used to create the corresponding mash 
-            of shape (num_examples, 2, spectrogram_width, spectrogram_height)
+                           of shape (num_examples, 2, n_timesteps)
     :param test_mashes: testing labels, list of the mashed songs derived from the corresponding two training data songs
-            of shape (num_examples, spectrogram_width, spectrogram_height)
+                        of shape (num_examples, n_timesteps)
     :return: Average batch loss of the model on the testing set
     """
 
@@ -82,24 +82,59 @@ def test(model, test_originals, test_mashes):
         losses.append(model.loss_function(artif_mashes, mash_batch))
     return np.average(losses)
 
+def visualize_testing_example(magnitude_model, phase_model, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha, index):
+    # Create numpy arrays to be fed into visualization functions
+    orig = np.array([[test_orig_mag[index]], [test_orig_pha[index]]])
+    np.save("../data/test/orig_testn_" + str(index), orig)
+    mash = np.array([[test_mash_mag[index]], [test_mash_pha[index]]])
+    np.save("../data/test/mash_testn_" + str(index), mash)
+
+    # Create numpy arrays for model generated magnitude and phase
+    artif_mag = magnitude_model(orig[0,:,0], orig[0,:,1])
+    artif_pha = phase_model(orig[1,:,0], orig[1,:,1])
+    artif = np.array([artif_mag, artif_pha])
+    np.save("../data/test/artif_testn_" + str(index), artif)
+
+    # Create spectrograms for original songs, mashed song, and model-produced song
+    generate_spectrogram("../data/test/orig_testn_" + str(index) + ".npy", "../data/test/orig_spect_testn_" + str(index), "Originals Spectrogram")
+    generate_spectrogram("../data/test/mash_testn_" + str(index) + ".npy", "../data/test/mash_spect_testn_" + str(index), "Mashup Spectrogram")
+    generate_spectrogram("../data/test/artif_testn_" + str(index) + ".npy", "../data/test/artif_spect_testn_" + str(index), "Model-Produced Spectrogram")
+
+    # Create audio files for original songs, mashed song, and model-produced song
+    generate_audio("../data/test/orig_testn_" + str(index) + ".npy", "../data/test/orig_song_testn_" + str(index))
+    generate_audio("../data/test/mash_testn_" + str(index) + ".npy", "../data/test/mash_song_testn_" + str(index))
+    generate_audio("../data/test/artif_testn_" + str(index) + ".npy", "../data/test/artif_song_testn_" + str(index))
+
+def visualize_unseen_example(magnitude_model, phase_model, wav_path):
+    # Convert desired input songs to magnitude and phase arrays
+    convert_original_to_array(wav_path, wav_path)
+    mag_in, pha_in = get_data(wav_path, wav_path, 1)
+    # Pass them through the model to generate the mashup
+    mag_out = magnitude_model(mag_in[:,0], mag_in[:,1])
+    pha_out = phase_model(pha_in[:,0], pha_in[:,1])
+    artif = np.array([mag_out, pha_out])
+    np.save("../data/test/artif", artif)
+
+    # Create spectrograms for original songs and model-produced song
+    generate_spectrogram(wav_path + "original.npy", wav_path + "original", "Original Spectrogram")
+    generate_spectrogram(wav_path + "artif.npy", wav_path + "artif", "Model-Produced Spectrogram")
+
+    # Create audio files for original songs and model-produced song
+    generate_audio(wav_path + "original.npy", wav_path + "original")
+    generate_audio(wav_path + "artif.npy", wav_path + "artif")
+
 def main():
     print("Running preprocessing...")
     # Gather preprocessed training and testing data
-    train_orig_mag, train_mash_mag, test_orig_mag, test_mash_mag = get_magnitude_data(0)
-    train_orig_pha, train_mash_pha, test_orig_pha, test_mash_pha = get_phase_data(0)
+    train_orig_mag, train_orig_pha, train_mash_mag, train_mash_pha, test_orig_mag, test_orig_pha, \
+        test_mash_mag, test_mash_pha = get_data("../data/preprocessed/original.npy", "../data/preprocessed/mashup.npy", 1)
     print("Preprocessing complete.")
 
-    train_orig_mag = np.load("../data/original_mag.npy")
-    print(train_orig_mag.shape)
-    train_orig_pha = np.load("../data/original_phase.npy")
-    print(train_orig_pha.shape)
-    train_mash_mag = np.load("../data/mashup_mag.npy")
-    print(train_mash_mag.shape)
-    train_mash_pha = np.load("../data/mashup_phase.npy")
-    print(train_mash_pha.shape)
-    print("Preprocessing complete.", flush=True)
+    test_orig_mag = train_orig_mag
+    test_orig_pha = train_orig_pha
+    test_mash_mag = train_mash_mag
+    test_mash_pha = train_mash_pha
     
-
     # Create models for both the magnitude and phase of the signal
     magnitude_model = SongMasher(train_orig_mag.shape[2], train_orig_mag.shape[3])
     phase_model = SongMasher(train_orig_pha.shape[2], train_orig_pha.shape[3])
@@ -113,6 +148,9 @@ def main():
         pha_loss = test(phase_model, train_orig_pha, train_mash_pha)
         print("Epoch %d Mag Test Loss: %.3f" % (epoch, mag_loss), flush=True)
         print("Epoch %d Pha Test Loss: %.3f" % (epoch, pha_loss), flush=True)
+    
+    # Visualize one example from the testing set
+    visualize_testing_example(magnitude_model, phase_model, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha, 0)
 
 
 if __name__ == '__main__':

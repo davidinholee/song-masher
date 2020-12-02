@@ -8,6 +8,8 @@ import soundfile as sf
 import matplotlib.pyplot as plt
 
 SAMPLE_RATE = 8000
+WINDOW_LENGTH = 512
+NFFT = 512
 
 def convert_mp3_to_wav(file_path_in, file_path_out):
     """
@@ -34,21 +36,44 @@ def generate_spectrogram(file_path_in, file_path_out, plot_title):
     """
 
     # Load in signal array
-    aud_data = np.load(file_path_in)[0]
-    # Generate spectrogram data and scale it to represent decibels
-    spect_raw = librosa.feature.melspectrogram(y=aud_data, sr=SAMPLE_RATE)
-    spect_dB = librosa.power_to_db(spect_raw, ref=np.max)
-    # Format spectrogram data into an image using matplotlib
-    fig, ax = plt.subplots()
-    fig.set_size_inches(15, 5)
-    img = librosa.display.specshow(spect_dB, x_axis='time', y_axis='mel', sr=SAMPLE_RATE, fmax=8000, ax=ax)
-    fig.colorbar(img, ax=ax, format='%+2.0f dB')
-    ax.set(title=plot_title)
-    fig.savefig(file_path_out)
+    aud_data = np.load(file_path_in)[:,0]
+    if (len(aud_data.shape) == 3):
+        # Mashup songs
+        magnitude = np.transpose(aud_data[0])
+        phase = np.transpose(aud_data[1])
+        # Calculate original audio signal values
+        transformed = magnitude * phase
+        signal = librosa.istft(transformed, win_length=WINDOW_LENGTH)
+        # Retransform to get sparser data
+        transformed = np.abs(librosa.stft(signal))
+        # Format spectrogram data into an image using matplotlib
+        fig, ax = plt.subplots()
+        fig.set_size_inches(30, 5)
+        img = librosa.display.specshow(librosa.amplitude_to_db(transformed, ref=np.max), y_axis='log', x_axis='time', ax=ax)
+        fig.colorbar(img, ax=ax, format="%+2.0f dB")
+        ax.set(title=plot_title)
+        fig.savefig(file_path_out + ".png")
+    else:
+        # Original songs
+        for i in range(2):
+            magnitude = np.transpose(aud_data[0,i])
+            phase = np.transpose(aud_data[1,i])
+            # Calculate original audio signal values
+            transformed = magnitude * phase
+            signal = librosa.istft(transformed, win_length=WINDOW_LENGTH)
+            # Retransform to get sparser data
+            transformed = np.abs(librosa.stft(signal))
+            # Format spectrogram data into an image using matplotlib
+            fig, ax = plt.subplots()
+            fig.set_size_inches(30, 5)
+            img = librosa.display.specshow(librosa.amplitude_to_db(transformed, ref=np.max), y_axis='log', x_axis='time', ax=ax)
+            fig.colorbar(img, ax=ax, format="%+2.0f dB")
+            ax.set(title=plot_title+" "+str(i+1))
+            fig.savefig(file_path_out + "_" + str(i+1) + ".png")
 
 def generate_audio(file_path_in, file_path_out):
     """
-    Generates the wav file corresponding to a signal array
+    Generates the wav file corresponding to the given signal array
 
     :param file_path_in: file path of the signal array
     :param file_path_out: file path of the to be generated wav
@@ -56,9 +81,26 @@ def generate_audio(file_path_in, file_path_out):
     """
 
     # Load in signal array
-    aud_data = np.load(file_path_in)[0]
-    # Use soundfile to write signal to a wav file
-    sf.write(file_path_out, aud_data, SAMPLE_RATE)
+    aud_data = np.load(file_path_in)[:,0]
+    if (len(aud_data.shape) == 3):
+        # Mashup song
+        magnitude = np.transpose(aud_data[0])
+        phase = np.transpose(aud_data[1])
+        # Calculate original audio signal values
+        transformed = magnitude * phase
+        signal = librosa.istft(transformed, win_length=WINDOW_LENGTH)
+        # Use soundfile to write signal to a wav file
+        sf.write(file_path_out + ".wav", signal, SAMPLE_RATE)
+    else:
+        # Original songs
+        for i in range(2):
+            magnitude = np.transpose(aud_data[0,i])
+            phase = np.transpose(aud_data[1,i])
+            # Calculate original audio signal values
+            transformed = magnitude * phase
+            signal = librosa.istft(transformed, win_length=WINDOW_LENGTH)
+            # Use soundfile to write signal to a wav file
+            sf.write(file_path_out + "_" + str(i+1) + ".wav", signal, SAMPLE_RATE)
 
 def convert_mashup_to_array(file_path_in, file_path_out):
     """
@@ -79,18 +121,22 @@ def convert_mashup_to_array(file_path_in, file_path_out):
         if (".wav" in song):
             # Grab array position for the song to be inserted
             index = int(song.split()[0])
-            # Read in the song
+            # Read in the song 
             aud_data, _ = librosa.load(file_path_in + song, sr=SAMPLE_RATE)
             # Parse out the first minute of the song
-            signal_fragment = aud_data[:60*SAMPLE_RATE]
+            aud_data = aud_data[:60*SAMPLE_RATE]
+            # Calculate the magnitude and phase arrays
+            transformed = librosa.stft(aud_data, win_length=WINDOW_LENGTH, n_fft=NFFT)
+            magnitude, phase = librosa.magphase(transformed)
             # Assign signal array if not created
             if (not initialized):
                 initialized = True
-                signal = np.zeros((n_songs, signal_fragment.shape[0]), dtype=np.float32)
-            signal[index] = signal_fragment
-            signal[index] = signal_fragment
+                signal = np.zeros((2, n_songs, magnitude.shape[1], magnitude.shape[0]), dtype=np.float32)
+            signal[0,index] = np.transpose(magnitude)
+            signal[1,index] = np.transpose(phase)
 
     # Save array to disk
+    print(signal.shape)
     np.save(file_path_out + "mashup", signal)
 
 def convert_original_to_array(file_path_in, file_path_out):
@@ -114,17 +160,22 @@ def convert_original_to_array(file_path_in, file_path_out):
             index = song.split('.')
             first = int(index[0])
             second = int(index[1])
-            # Read in the song
+            # Read in the song and calculate the magnitude and phase arrays
             aud_data, _ = librosa.load(file_path_in + song, sr=SAMPLE_RATE)
             # Parse out the first minute of the song
-            signal_fragment = aud_data[:60*SAMPLE_RATE]
+            aud_data = aud_data[:60*SAMPLE_RATE]
+            # Calculate the magnitude and phase arrays
+            transformed = librosa.stft(aud_data, win_length=WINDOW_LENGTH, n_fft=NFFT)
+            magnitude, phase = librosa.magphase(transformed)
             # Assign signal array if not created
             if (not initialized):
                 initialized = True
-                signal = np.zeros((n_songs, 2, signal_fragment.shape[0]), dtype=np.float32)
-            signal[first, second] = signal_fragment
+                signal = np.zeros((2, n_songs, 2, magnitude.shape[1], magnitude.shape[0]), dtype=np.float32)
+            signal[0, first, second] = np.transpose(magnitude)
+            signal[1, first, second] = np.transpose(phase)
 
     # Save array to disk
+    print(signal.shape)
     np.save(file_path_out + "original", signal)
 
 def get_data(file_path_orig, file_path_mash, split):
@@ -133,26 +184,38 @@ def get_data(file_path_orig, file_path_mash, split):
 
     :param file_path_orig: The file that contains the original songs signal array
     :param file_path_mash: The file that contains the mashed songs signal array
-    :return: The signal arrays for the training and testing original/mashed songs, where 
-             the originals are of size (n_samples, 2, n_timesteps) and the mashes are of 
-             size (n_samples, width, n_timesteps)
+    :return: The magnitude and phase arrays that make up the audio signal for each 
+             training and testing original/mashed song, where the original arrays 
+             are of size (n_samples, 2, n_timesteps) and the mashed arrays are of 
+             size (n_samples, width, n_timesteps).
     """
 
+    # Read in magnitude and phase arrays for both original and mashed songs
     originals = np.load(file_path_orig)
+    orig_mag = originals[0]
+    orig_pha = originals[1]
     mashes = np.load(file_path_mash)
-    n_samples = originals.shape[0]
-    train_orig = originals[:int(n_samples*split)]
-    train_mash = mashes[:int(n_samples*split)]
-    test_orig = originals[int(n_samples*split):]
-    test_mash = mashes[int(n_samples*split):]
-    return train_orig, train_mash, test_orig, test_mash
+    mash_mag = mashes[0]
+    mash_pha = mashes[1]
+    split_index = int(orig_mag.shape[0]*split)
+
+    # Split the magnitude and phase arrays between the training and testing sets for both original and mashed songs
+    train_orig_mag = orig_mag[:split_index]
+    train_orig_pha = orig_pha[:split_index]
+    train_mash_mag = mash_mag[:split_index]
+    train_mash_pha = mash_pha[:split_index]
+    test_orig_mag = orig_mag[split_index:]
+    test_orig_pha = orig_pha[split_index:]
+    test_mash_mag = mash_mag[split_index:]
+    test_mash_pha = mash_pha[split_index:]
+    return train_orig_mag, train_orig_pha, train_mash_mag, train_mash_pha, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha
     
-def main():
+def prep():
     convert_original_to_array("../data/original-wav/", "../data/preprocessed/")
     convert_mashup_to_array("../data/mashup-wav/", "../data/preprocessed/")
-    generate_spectrogram("../data/preprocessed/mashup.npy", "../data/spectrogram/test.png", "Test Spectrogram")
-    generate_audio("../data/preprocessed/mashup.npy", "../data/audio/test.wav")
+    generate_spectrogram("../data/preprocessed/mashup.npy", "../data/spectrogram/test", "Test Spectrogram")
+    generate_audio("../data/preprocessed/mashup.npy", "../data/audio/test")
 
 
 if __name__ == "__main__":
-    main()
+    prep()
