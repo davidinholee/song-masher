@@ -220,12 +220,12 @@ def get_phase_data(file_n):
     return train_orig_pha, train_mash_pha, test_orig_pha, test_mash_pha
     
 if __name__ == "__main__":
-    audio_dir = "../audio/"
-    ori_dir = "../original/"
-    spect_dir = "../spect/"
-    arrays_dir = "../arrays/"
-    rec_dir = "../recovered/"
-    mp3_dir = "../mp3/"
+    audio_dir = "../data/audio/"
+    ori_dir = "../data/original/"
+    spect_dir = "../data/spect/"
+    arrays_dir = "../data/arrays/"
+    rec_dir = "../data/recovered/"
+    mp3_dir = "../data/mp3/"
 
     convertOriginalToArray(ori_dir)
     convertToMashupArray(audio_dir)

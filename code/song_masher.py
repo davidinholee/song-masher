@@ -89,6 +89,17 @@ def main():
     train_orig_pha, train_mash_pha, test_orig_pha, test_mash_pha = get_phase_data(0)
     print("Preprocessing complete.")
 
+    train_orig_mag = np.load("../data/original_mag.npy")
+    print(train_orig_mag.shape)
+    train_orig_pha = np.load("../data/original_phase.npy")
+    print(train_orig_pha.shape)
+    train_mash_mag = np.load("../data/mashup_mag.npy")
+    print(train_mash_mag.shape)
+    train_mash_pha = np.load("../data/mashup_phase.npy")
+    print(train_mash_pha.shape)
+    print("Preprocessing complete.", flush=True)
+    
+
     # Create models for both the magnitude and phase of the signal
     magnitude_model = SongMasher(train_orig_mag.shape[2], train_orig_mag.shape[3])
     phase_model = SongMasher(train_orig_pha.shape[2], train_orig_pha.shape[3])
@@ -96,8 +107,10 @@ def main():
     for epoch in range(5):
         train(magnitude_model, train_orig_mag, train_mash_mag)
         train(phase_model, train_orig_pha, train_mash_pha)
-        mag_loss = test(magnitude_model, test_orig_mag, test_mash_mag)
-        pha_loss = test(phase_model, test_orig_pha, test_mash_pha)
+        #mag_loss = test(magnitude_model, test_orig_mag, test_mash_mag)
+        #pha_loss = test(phase_model, test_orig_pha, test_mash_pha)
+        mag_loss = test(magnitude_model, train_orig_mag, train_mash_mag)
+        pha_loss = test(phase_model, train_orig_pha, train_mash_pha)
         print("Epoch %d Mag Test Loss: %.3f" % (epoch, mag_loss), flush=True)
         print("Epoch %d Pha Test Loss: %.3f" % (epoch, pha_loss), flush=True)
 
