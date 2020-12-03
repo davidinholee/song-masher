@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 import numpy as np
 from preprocess import *
+from utils import *
 from model import SongMasher
 import sys
 import random
@@ -38,7 +39,7 @@ def train(model, train_originals, train_mashes):
 
         # Calculate predictions and loss
         with tf.GradientTape() as tape:
-            artif_mashes = model(orig_batch1, orig_batch2)
+            artif_mashes = model([orig_batch1, orig_batch2])
             artif_mashes = tf.reshape(artif_mashes, [model.batch_size, artif_mashes.shape[1] * artif_mashes.shape[2]])
             mash_batch = tf.reshape(mash_batch, [model.batch_size, mash_batch.shape[1] * mash_batch.shape[2]])
             loss = model.loss_function(artif_mashes, mash_batch)
@@ -76,7 +77,7 @@ def test(model, test_originals, test_mashes):
         mash_batch = tf.cast(test_mashes[i:i+model.batch_size], np.float32)
 
         # Calculate predictions and loss
-        artif_mashes = model(orig_batch1, orig_batch2)
+        artif_mashes = model([orig_batch1, orig_batch2])
         artif_mashes = tf.reshape(artif_mashes, [model.batch_size, artif_mashes.shape[1] * artif_mashes.shape[2]])
         mash_batch = tf.reshape(mash_batch, [model.batch_size, mash_batch.shape[1] * mash_batch.shape[2]])
         losses.append(model.loss_function(artif_mashes, mash_batch))
@@ -90,8 +91,8 @@ def visualize_testing_example(magnitude_model, phase_model, test_orig_mag, test_
     np.save("../data/test/mash_testn_" + str(index), mash)
 
     # Create numpy arrays for model generated magnitude and phase
-    artif_mag = magnitude_model(orig[0,:,0], orig[0,:,1])
-    artif_pha = phase_model(orig[1,:,0], orig[1,:,1])
+    artif_mag = magnitude_model([orig[0,:,0], orig[0,:,1]])
+    artif_pha = phase_model([orig[1,:,0], orig[1,:,1]])
     artif = np.array([artif_mag, artif_pha])
     np.save("../data/test/artif_testn_" + str(index), artif)
 
@@ -110,8 +111,8 @@ def visualize_unseen_example(magnitude_model, phase_model, wav_path):
     convert_original_to_array(wav_path, wav_path)
     mag_in, pha_in = get_data(wav_path, wav_path, 1)
     # Pass them through the model to generate the mashup
-    mag_out = magnitude_model(mag_in[:,0], mag_in[:,1])
-    pha_out = phase_model(pha_in[:,0], pha_in[:,1])
+    mag_out = magnitude_model([mag_in[:,0], mag_in[:,1]])
+    pha_out = phase_model([pha_in[:,0], pha_in[:,1]])
     artif = np.array([mag_out, pha_out])
     np.save("../data/test/artif", artif)
 
@@ -139,7 +140,7 @@ def main():
     magnitude_model = SongMasher(train_orig_mag.shape[2], train_orig_mag.shape[3])
     phase_model = SongMasher(train_orig_pha.shape[2], train_orig_pha.shape[3])
     # Train and test model for 5 epochs.
-    for epoch in range(5):
+    for epoch in range(2):
         train(magnitude_model, train_orig_mag, train_mash_mag)
         train(phase_model, train_orig_pha, train_mash_pha)
         #mag_loss = test(magnitude_model, test_orig_mag, test_mash_mag)
@@ -149,8 +150,14 @@ def main():
         print("Epoch %d Mag Test Loss: %.3f" % (epoch, mag_loss), flush=True)
         print("Epoch %d Pha Test Loss: %.3f" % (epoch, pha_loss), flush=True)
     
+    # Save models after done training
+    magnitude_model.save('../model/magnitude_model')
+    phase_model.save('../model/phase_model')
+    # Load models for visualization
+    mag_model = tf.keras.models.load_model("../model/magnitude_model")
+    pha_model = tf.keras.models.load_model("../model/phase_model")
     # Visualize one example from the testing set
-    visualize_testing_example(magnitude_model, phase_model, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha, 0)
+    visualize_testing_example(mag_model, pha_model, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha, 0)
 
 
 if __name__ == '__main__':

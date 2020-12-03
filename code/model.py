@@ -9,7 +9,7 @@ class SongMasher(tf.keras.Model):
 
         # Define hyperparameters
         self.batch_size = 1
-        self.learning_rate = 0.1
+        self.learning_rate = 0.01
         self.embedding_size = 256
         self.width = spectrogram_width
         self.height = spectrogram_height
@@ -28,13 +28,14 @@ class SongMasher(tf.keras.Model):
         self.decoder_dense = tf.keras.layers.Dense(self.height)
 
     @tf.function
-    def call(self, originals1, originals2):
+    def call(self, originals):
         """
         :param originals1: spectrogram of one of the original two songs that will be used to generate a mashup
         :param originals2: spectrogram of the other original song that will be used to generate a mashup
         :return: the spectrogram of the mashup generated from the model
         """
         
+        originals1, originals2 = originals
         # Generate encodings of the original two songs using attention
         all_states1, fin_state1, cell_state1 = self.encoder(originals1, initial_state=None)
         attention1 = self.encoder_attention(all_states1)

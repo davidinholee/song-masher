@@ -2,10 +2,6 @@ import os
 import numpy as np
 import math
 from pydub import AudioSegment
-import librosa
-import librosa.display
-import soundfile as sf
-import matplotlib.pyplot as plt
 
 SAMPLE_RATE = 8000
 WINDOW_LENGTH = 512
@@ -25,87 +21,6 @@ def convert_mp3_to_wav(file_path_in, file_path_out):
     for song in mp3_clips:
         sound = AudioSegment.from_mp3(file_path_in + song)
         sound.export(file_path_out + song + ".wav", format="wav")
-
-def generate_spectrogram(file_path_in, file_path_out, plot_title):
-    """
-    Generates the spectrogram corresponding to a signal array
-
-    :param file_path_in: file path of the signal array
-    :param file_path_out: file path of the to be generated spectrogram
-    :param plot_title: title of the spectrogram
-    :return: None
-    """
-
-    # Load in signal array
-    aud_data = np.load(file_path_in)[:,0]
-    # Denormalize signal magnitudes
-    aud_data[0] = aud_data[0] * 60
-    if (len(aud_data.shape) == 3):
-        # Mashup songs
-        magnitude = np.transpose(aud_data[0])
-        phase = np.transpose(aud_data[1])
-        # Calculate original audio signal values
-        transformed = magnitude * phase
-        signal = librosa.istft(transformed, win_length=WINDOW_LENGTH)
-        # Retransform to get sparser data
-        transformed = np.abs(librosa.stft(signal))
-        # Format spectrogram data into an image using matplotlib
-        fig, ax = plt.subplots()
-        fig.set_size_inches(30, 5)
-        img = librosa.display.specshow(librosa.amplitude_to_db(transformed, ref=np.max), y_axis='log', x_axis='time', ax=ax)
-        fig.colorbar(img, ax=ax, format="%+2.0f dB")
-        ax.set(title=plot_title)
-        fig.savefig(file_path_out + ".png")
-    else:
-        # Original songs
-        for i in range(2):
-            magnitude = np.transpose(aud_data[0,i])
-            phase = np.transpose(aud_data[1,i])
-            # Calculate original audio signal values
-            transformed = magnitude * phase
-            signal = librosa.istft(transformed, win_length=WINDOW_LENGTH)
-            # Retransform to get sparser data
-            transformed = np.abs(librosa.stft(signal))
-            # Format spectrogram data into an image using matplotlib
-            fig, ax = plt.subplots()
-            fig.set_size_inches(30, 5)
-            img = librosa.display.specshow(librosa.amplitude_to_db(transformed, ref=np.max), y_axis='log', x_axis='time', ax=ax)
-            fig.colorbar(img, ax=ax, format="%+2.0f dB")
-            ax.set(title=plot_title+" "+str(i+1))
-            fig.savefig(file_path_out + "_" + str(i+1) + ".png")
-
-def generate_audio(file_path_in, file_path_out):
-    """
-    Generates the wav file corresponding to the given signal array
-
-    :param file_path_in: file path of the signal array
-    :param file_path_out: file path of the to be generated wav
-    :return: None
-    """
-
-    # Load in signal array
-    aud_data = np.load(file_path_in)[:,0]
-    # Denormalize signal magnitudes
-    aud_data[0] = aud_data[0] * 60
-    if (len(aud_data.shape) == 3):
-        # Mashup song
-        magnitude = np.transpose(aud_data[0])
-        phase = np.transpose(aud_data[1])
-        # Calculate original audio signal values
-        transformed = magnitude * phase
-        signal = librosa.istft(transformed, win_length=WINDOW_LENGTH)
-        # Use soundfile to write signal to a wav file
-        sf.write(file_path_out + ".wav", signal, SAMPLE_RATE)
-    else:
-        # Original songs
-        for i in range(2):
-            magnitude = np.transpose(aud_data[0,i])
-            phase = np.transpose(aud_data[1,i])
-            # Calculate original audio signal values
-            transformed = magnitude * phase
-            signal = librosa.istft(transformed, win_length=WINDOW_LENGTH)
-            # Use soundfile to write signal to a wav file
-            sf.write(file_path_out + "_" + str(i+1) + ".wav", signal, SAMPLE_RATE)
 
 def convert_mashup_to_array(file_path_in, file_path_out):
     """
