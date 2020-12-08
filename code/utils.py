@@ -101,3 +101,15 @@ def upload_file(drive, file_path):
         new_file.SetContentFile(str(file_path))
         new_file.Upload()
         print("File " + filename + " uploaded")
+
+def download_folder(drive, folder_id, download_path):
+    file_list = drive.ListFile({'q': "'" + folder_id + "' in parents"}).GetList()
+    os.chdir(download_path)
+
+    for f in file_list:
+        print('title: %s, id: %s' % (f['title'], f['id']))
+        fname = f['title']
+        print('downloading to {}'.format(fname))
+        f_ = drive.CreateFile({'id': f['id']})
+        f_.GetContentFile(fname)
+    os.chdir("../../code")

@@ -131,6 +131,9 @@ def main():
     g_auth = GoogleAuth()
     g_auth.LocalWebserverAuth()
     drive = GoogleDrive(g_auth)
+    # Download mp3s
+    download_folder(drive, "1aP-l-4q_4WdwIJpXgzyL_IgdfWx_SZBl", "../data/original-mp3")
+    download_folder(drive, "1KDMGM4wMjK64WKr26_JxPk8t5LgFSGxv", "../data/mashup-mp3")
 
     print("Running preprocessing...")
     # Gather preprocessed training and testing data
