@@ -44,6 +44,9 @@ def convert_mashup_to_array(file_path_in, file_path_out):
 
     # Normalize array so that magnitude values are between 0 and 1 (phase values are already normalized)
     signal[0] = signal[0] / MAG_MAX
+    # Delete malformed rows
+    rows_to_delete = []
+    signal = np.delete(signal, rows_to_delete, 1)
     # Save array to disk
     np.save(file_path_out + "mashup", signal)
 
@@ -84,6 +87,9 @@ def convert_original_to_array(file_path_in, file_path_out):
 
     # Normalize array so that magnitude values are between 0 and 1 (phase values are already normalized)
     signal[0] = signal[0] / MAG_MAX
+    # Delete malformed rows
+    rows_to_delete = []
+    signal = np.delete(signal, rows_to_delete, 1)
     # Save array to disk
     np.save(file_path_out + "original", signal)
 

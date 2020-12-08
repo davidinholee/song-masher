@@ -131,7 +131,6 @@ def main():
     g_auth = GoogleAuth()
     g_auth.LocalWebserverAuth()
     drive = GoogleDrive(g_auth)
-    upload_file(drive, "../data/test/artif_song_testn_0.wav")
 
     print("Running preprocessing...")
     # Gather preprocessed training and testing data
@@ -166,6 +165,11 @@ def main():
     pha_model = tf.keras.models.load_model("../model/phase_model")
     # Visualize one example from the testing set
     visualize_testing_example(mag_model, pha_model, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha, 0)
+    # Upload visualized examples
+    test_files = ["artif_song_testn_0.wav", "artif_spect_testn_0.png", "artif_testn_0.npy", "mash_song_testn_0.wav", "mash_spect_testn_0.png", "mash_testn_0.npy", 
+        "orig_song_testn_0_1.wav", "orig_song_testn_0_2.wav", "orig_spect_testn_0_1.png", "orig_spect_testn_0_2.png", "orig_testn_0.npy"]
+    for fname in test_files:
+        upload_file(drive, "../data/test/" + fname)
 
 
 if __name__ == '__main__':
