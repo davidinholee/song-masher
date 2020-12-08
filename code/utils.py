@@ -91,3 +91,13 @@ def generate_audio(file_path_in, file_path_out):
             signal = librosa.istft(transformed, win_length=WINDOW_LENGTH)
             # Use soundfile to write signal to a wav file
             sf.write(file_path_out + "_" + str(i+1) + ".wav", signal, SAMPLE_RATE)
+
+def upload_file(drive, file_path):
+    with open(file_path, "r") as f:
+        # Get filename
+        filename = os.path.basename(f.name)
+        # Creates file for Drive
+        new_file = drive.CreateFile({ 'title': str(filename) })
+        new_file.SetContentFile(str(file_path))
+        new_file.Upload()
+        print("File " + filename + " uploaded")

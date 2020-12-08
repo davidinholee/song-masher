@@ -7,6 +7,8 @@ from utils import *
 from model import SongMasher
 import sys
 import random
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
 
 def train(model, train_originals, train_mashes):
     """
@@ -125,10 +127,16 @@ def visualize_unseen_example(magnitude_model, phase_model, wav_path):
     generate_audio(wav_path + "artif.npy", wav_path + "artif")
 
 def main():
+    # Set up Google Drive authentication
+    g_auth = GoogleAuth()
+    g_auth.LocalWebserverAuth()
+    drive = GoogleDrive(g_auth)
+    upload_file(drive, "../data/test/artif_song_testn_0.wav")
+
     print("Running preprocessing...")
     # Gather preprocessed training and testing data
     train_orig_mag, train_orig_pha, train_mash_mag, train_mash_pha, test_orig_mag, test_orig_pha, \
-        test_mash_mag, test_mash_pha = get_data("../data/preprocessed/original.npy", "../data/preprocessed/mashup.npy", 1)
+        test_mash_mag, test_mash_pha = get_data("../data/preprocessed/original.npy", "../data/preprocessed/mashup.npy", 0.95)
     print("Preprocessing complete.")
 
     test_orig_mag = train_orig_mag
@@ -139,8 +147,8 @@ def main():
     # Create models for both the magnitude and phase of the signal
     magnitude_model = SongMasher(train_orig_mag.shape[2], train_orig_mag.shape[3])
     phase_model = SongMasher(train_orig_pha.shape[2], train_orig_pha.shape[3])
-    # Train and test model for 5 epochs.
-    for epoch in range(2):
+    # Train and test model for 100 epochs.
+    for epoch in range(100):
         train(magnitude_model, train_orig_mag, train_mash_mag)
         train(phase_model, train_orig_pha, train_mash_pha)
         #mag_loss = test(magnitude_model, test_orig_mag, test_mash_mag)

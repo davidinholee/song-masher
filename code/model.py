@@ -8,7 +8,7 @@ class SongMasher(tf.keras.Model):
         super(SongMasher, self).__init__()
 
         # Define hyperparameters
-        self.batch_size = 1
+        self.batch_size = 50
         self.learning_rate = 0.01
         self.embedding_size = 256
         self.width = spectrogram_width

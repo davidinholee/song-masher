@@ -2,25 +2,12 @@ import os
 import numpy as np
 import math
 from pydub import AudioSegment
+from utils import *
 
 SAMPLE_RATE = 8000
 WINDOW_LENGTH = 512
 NFFT = 512
 MAG_MAX = 80
-
-def convert_mp3_to_wav(file_path_in, file_path_out):
-    """
-    Converts the mp3 files in the directory to wav files
-
-    :param file_path_in: directory containing the mp3 files
-    :param file_path_out: directory to store the wav files
-    :return: None
-    """
-
-    mp3_clips = os.listdir(file_path_in)
-    for song in mp3_clips:
-        sound = AudioSegment.from_mp3(file_path_in + song)
-        sound.export(file_path_out + song + ".wav", format="wav")
 
 def convert_mashup_to_array(file_path_in, file_path_out):
     """
@@ -135,6 +122,7 @@ def get_data(file_path_orig, file_path_mash, split):
 def prep():
     convert_original_to_array("../data/original-wav/", "../data/preprocessed/")
     convert_mashup_to_array("../data/mashup-wav/", "../data/preprocessed/")
+    # Test to make sure data has been preprocessed correctly
     generate_spectrogram("../data/preprocessed/mashup.npy", "../data/spectrogram/test", "Test Spectrogram")
     generate_audio("../data/preprocessed/mashup.npy", "../data/audio/test")
 
