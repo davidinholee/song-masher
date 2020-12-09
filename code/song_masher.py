@@ -3,12 +3,12 @@ import numpy as np
 import tensorflow as tf
 import numpy as np
 from preprocess import *
-from utils import *
+#from utils import *
 from model import SongMasher
 import sys
 import random
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
+# from pydrive.auth import GoogleAuth
+# from pydrive.drive import GoogleDrive
 
 def train(model, train_originals, train_mashes):
     """
@@ -177,8 +177,8 @@ def main():
     mag_model = tf.keras.models.load_model("../model/magnitude_model")
     pha_model = tf.keras.models.load_model("../model/phase_model")
     # Visualize one example from the testing set
-    print("Visualizing models...", flush=True)
-    visualize_testing_example(mag_model, pha_model, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha, 0)
+    # print("Visualizing models...", flush=True)
+    # visualize_testing_example(mag_model, pha_model, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha, 0)
     # # Upload visualized examples
     # print("Uploading results...", flush=True)
     # test_files = ["artif_song_testn_0.wav", "artif_spect_testn_0.png", "artif_testn_0.npy", "mash_song_testn_0.wav", "mash_spect_testn_0.png", "mash_testn_0.npy", 

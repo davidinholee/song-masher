@@ -2,7 +2,7 @@ import os
 import numpy as np
 import math
 from pydub import AudioSegment
-from utils import *
+#from utils import *
 
 SAMPLE_RATE = 8000
 WINDOW_LENGTH = 512
