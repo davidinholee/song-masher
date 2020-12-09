@@ -128,9 +128,9 @@ def visualize_unseen_example(magnitude_model, phase_model, wav_path):
 
 def main():
     # Set up Google Drive authentication
-    g_auth = GoogleAuth()
-    g_auth.LocalWebserverAuth()
-    drive = GoogleDrive(g_auth)
+    # g_auth = GoogleAuth()
+    # g_auth.LocalWebserverAuth()
+    # drive = GoogleDrive(g_auth)
     # # Download mp3s
     # print("Downloading...", flush=True)
     # download_folder(drive, "1EbwrLZxZGOvLTuGPPWmrKlYjbS_UuNw_", "../data/original-mp3")
@@ -179,12 +179,12 @@ def main():
     # Visualize one example from the testing set
     print("Visualizing models...", flush=True)
     visualize_testing_example(mag_model, pha_model, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha, 0)
-    # Upload visualized examples
-    print("Uploading results...", flush=True)
-    test_files = ["artif_song_testn_0.wav", "artif_spect_testn_0.png", "artif_testn_0.npy", "mash_song_testn_0.wav", "mash_spect_testn_0.png", "mash_testn_0.npy", 
-        "orig_song_testn_0_1.wav", "orig_song_testn_0_2.wav", "orig_spect_testn_0_1.png", "orig_spect_testn_0_2.png", "orig_testn_0.npy"]
-    for fname in test_files:
-        upload_file(drive, "../data/test/" + fname)
+    # # Upload visualized examples
+    # print("Uploading results...", flush=True)
+    # test_files = ["artif_song_testn_0.wav", "artif_spect_testn_0.png", "artif_testn_0.npy", "mash_song_testn_0.wav", "mash_spect_testn_0.png", "mash_testn_0.npy", 
+    #     "orig_song_testn_0_1.wav", "orig_song_testn_0_2.wav", "orig_spect_testn_0_1.png", "orig_spect_testn_0_2.png", "orig_testn_0.npy"]
+    # for fname in test_files:
+    #     upload_file(drive, "../data/test/" + fname)
 
 
 if __name__ == '__main__':
