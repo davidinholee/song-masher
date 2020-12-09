@@ -21,7 +21,6 @@ def convert_mashup_to_array(file_path_in, file_path_out):
     # Get list of all .wav files in directory
     audio_clips = os.listdir(file_path_in)
     n_songs = len(audio_clips) - 1
-    n_songs = 771
     # Initialize the magnitude and phase arrays
     initialized = False
     signal = None
@@ -71,7 +70,6 @@ def convert_original_to_array(file_path_in, file_path_out):
     # Get list of all .wav files in directory
     audio_clips = os.listdir(file_path_in)
     n_songs = int((len(audio_clips) - 1)/2)
-    n_songs = 771
     # Initialize the magnitude and phase arrays
     initialized = False
     signal = None

@@ -158,7 +158,7 @@ def main():
     magnitude_model = SongMasher(train_orig_mag.shape[2], train_orig_mag.shape[3])
     phase_model = SongMasher(train_orig_pha.shape[2], train_orig_pha.shape[3])
     # Train and test model for 100 epochs.
-    for epoch in range(100):
+    for epoch in range(10):
         train(magnitude_model, train_orig_mag, train_mash_mag)
         train(phase_model, train_orig_pha, train_mash_pha)
         #mag_loss = test(magnitude_model, test_orig_mag, test_mash_mag)

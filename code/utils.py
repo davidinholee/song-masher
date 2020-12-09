@@ -111,15 +111,3 @@ def download_folder(drive, folder_id, download_path):
         f_ = drive.CreateFile({'id': f['id']})
         f_.GetContentFile(fname)
     os.chdir("../../code")
-
-def clip():
-    originals = np.load("../data/preprocessed/original.npy")
-    originals = originals[:,:500]
-    np.save("../data/preprocessed/original.npy", originals)
-    mashup = np.load("../data/preprocessed/mashup.npy")
-    mashup = mashup[:,:500]
-    np.save("../data/preprocessed/mashup.npy", originals)
-
-
-if __name__ == "__main__":
-    clip()
