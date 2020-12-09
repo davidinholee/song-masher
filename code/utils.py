@@ -107,9 +107,19 @@ def download_folder(drive, folder_id, download_path):
     os.chdir(download_path)
 
     for f in file_list:
-        print('title: %s, id: %s' % (f['title'], f['id']))
         fname = f['title']
-        print('downloading to {}'.format(fname))
         f_ = drive.CreateFile({'id': f['id']})
         f_.GetContentFile(fname)
     os.chdir("../../code")
+
+def clip():
+    originals = np.load("../data/preprocessed/original.npy")
+    originals = originals[:,:500]
+    np.save("../data/preprocessed/original.npy", originals)
+    mashup = np.load("../data/preprocessed/mashup.npy")
+    mashup = mashup[:,:500]
+    np.save("../data/preprocessed/mashup.npy", originals)
+
+
+if __name__ == "__main__":
+    clip()
