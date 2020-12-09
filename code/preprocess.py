@@ -21,13 +21,15 @@ def convert_mashup_to_array(file_path_in, file_path_out):
     # Get list of all .wav files in directory
     audio_clips = os.listdir(file_path_in)
     n_songs = len(audio_clips) - 1
+    n_songs = 771
     # Initialize the magnitude and phase arrays
     initialized = False
     signal = None
-    for song in audio_clips:
+    for i, song in enumerate(audio_clips):
+        print(i, flush=True)
         if (".wav" in song):
             # Grab array position for the song to be inserted
-            index = int(song.split()[0])
+            index = int(song.split()[0]) - 880
             # Read in the song 
             aud_data, _ = librosa.load(file_path_in + song, sr=SAMPLE_RATE)
             # Parse out the first minute of the song
@@ -39,6 +41,9 @@ def convert_mashup_to_array(file_path_in, file_path_out):
             if (not initialized):
                 initialized = True
                 signal = np.zeros((2, n_songs, magnitude.shape[1], magnitude.shape[0]), dtype=np.float32)
+            if (magnitude.shape[1] != signal.shape[2]):
+                magnitude = np.random.normal(0, 1, (signal.shape[3], signal.shape[2]))
+                phase = np.random.normal(0, 1, (signal.shape[3], signal.shape[2]))
             signal[0,index] = np.transpose(magnitude)
             signal[1,index] = np.transpose(phase)
 
@@ -47,7 +52,8 @@ def convert_mashup_to_array(file_path_in, file_path_out):
     # Delete malformed rows
     rows_to_delete = np.array([31, 75, 76, 94, 102, 106, 120, 126, 157, 170, 173, 196, 203, 214, 219, 227, 232, 235, 241, 243, 246, 
     270, 280, 282, 304, 312, 317, 331, 338, 345, 350, 355, 356, 375, 377, 383, 393, 416, 433, 434, 451, 457, 467, 472, 481, 495, 
-    501, 508, 514, 522, 538, 539, 545, 549, 555, 565, 566, 575, 593, 612, 613, 616, 642, 644, 649, 660, 661, 164, 347, 477, 553]) + 879
+    501, 508, 514, 522, 538, 539, 545, 549, 555, 565, 566, 575, 593, 612, 613, 616, 642, 644, 649, 660, 661, 164, 347, 477, 553,
+    668, 671, 674, 675, 682, 695, 703, 680, 740]) - 1
     signal = np.delete(signal, rows_to_delete, 1)
     # Save array to disk
     print(signal.shape)
@@ -65,14 +71,16 @@ def convert_original_to_array(file_path_in, file_path_out):
     # Get list of all .wav files in directory
     audio_clips = os.listdir(file_path_in)
     n_songs = int((len(audio_clips) - 1)/2)
+    n_songs = 771
     # Initialize the magnitude and phase arrays
     initialized = False
     signal = None
-    for song in audio_clips:
+    for i, song in enumerate(audio_clips):
+        print(i, flush=True)
         if (".wav" in song):
             # Grab array position for the song to be inserted
-            index = song.split('.')
-            first = int(index[0])
+            index = song.split()
+            first = int(index[0]) - 880
             second = int(index[1])
             # Read in the song and calculate the magnitude and phase arrays
             aud_data, _ = librosa.load(file_path_in + song, sr=SAMPLE_RATE)
@@ -93,7 +101,8 @@ def convert_original_to_array(file_path_in, file_path_out):
     # Delete malformed rows
     rows_to_delete = np.array([31, 75, 76, 94, 102, 106, 120, 126, 157, 170, 173, 196, 203, 214, 219, 227, 232, 235, 241, 243, 246, 
     270, 280, 282, 304, 312, 317, 331, 338, 345, 350, 355, 356, 375, 377, 383, 393, 416, 433, 434, 451, 457, 467, 472, 481, 495, 
-    501, 508, 514, 522, 538, 539, 545, 549, 555, 565, 566, 575, 593, 612, 613, 616, 642, 644, 649, 660, 661, 164, 347, 477, 553]) + 879
+    501, 508, 514, 522, 538, 539, 545, 549, 555, 565, 566, 575, 593, 612, 613, 616, 642, 644, 649, 660, 661, 164, 347, 477, 553,
+    668, 671, 674, 675, 682, 695, 703, 680, 740]) - 1
     signal = np.delete(signal, rows_to_delete, 1)
     # Save array to disk
     print(signal.shape)
@@ -132,11 +141,11 @@ def get_data(file_path_orig, file_path_mash, split):
     return train_orig_mag, train_orig_pha, train_mash_mag, train_mash_pha, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha
     
 def prep():
-    convert_original_to_array("../data/original-wav/", "../data/preprocessed/")
+    #convert_original_to_array("../data/original-wav/", "../data/preprocessed/")
     convert_mashup_to_array("../data/mashup-wav/", "../data/preprocessed/")
     # Test to make sure data has been preprocessed correctly
-    generate_spectrogram("../data/preprocessed/mashup.npy", "../data/spectrogram/test", "Test Spectrogram")
-    generate_audio("../data/preprocessed/mashup.npy", "../data/audio/test")
+    #generate_spectrogram("../data/preprocessed/mashup.npy", "../data/spectrogram/test", "Test Spectrogram")
+    #generate_audio("../data/preprocessed/mashup.npy", "../data/audio/test")
 
 
 if __name__ == "__main__":
