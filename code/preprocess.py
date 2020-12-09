@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import math
-from pydub import AudioSegment
+#from pydub import AudioSegment
 #from utils import *
 
 SAMPLE_RATE = 8000
