@@ -132,14 +132,21 @@ def main():
     g_auth.LocalWebserverAuth()
     drive = GoogleDrive(g_auth)
     # Download mp3s
-    download_folder(drive, "1aP-l-4q_4WdwIJpXgzyL_IgdfWx_SZBl", "../data/original-mp3")
-    download_folder(drive, "1KDMGM4wMjK64WKr26_JxPk8t5LgFSGxv", "../data/mashup-mp3")
+    print("Downloading...")
+    download_folder(drive, "1EbwrLZxZGOvLTuGPPWmrKlYjbS_UuNw_", "../data/original-mp3")
+    download_folder(drive, "1dPEIZhRvM-YeKZPgOZKRNhJQR5UyVptH", "../data/mashup-mp3")
 
+    # Preprocess data
     print("Running preprocessing...")
+    prep()
+    print("Uploading...")
+    upload_file(drive, "../data/preprocessed/original.npy")
+    upload_file(drive, "../data/preprocessed/mashup.npy")
+
     # Gather preprocessed training and testing data
+    print("Gathering data...")
     train_orig_mag, train_orig_pha, train_mash_mag, train_mash_pha, test_orig_mag, test_orig_pha, \
         test_mash_mag, test_mash_pha = get_data("../data/preprocessed/original.npy", "../data/preprocessed/mashup.npy", 0.95)
-    print("Preprocessing complete.")
 
     test_orig_mag = train_orig_mag
     test_orig_pha = train_orig_pha
@@ -147,6 +154,7 @@ def main():
     test_mash_pha = train_mash_pha
     
     # Create models for both the magnitude and phase of the signal
+    print("Training...")
     magnitude_model = SongMasher(train_orig_mag.shape[2], train_orig_mag.shape[3])
     phase_model = SongMasher(train_orig_pha.shape[2], train_orig_pha.shape[3])
     # Train and test model for 100 epochs.
@@ -161,14 +169,18 @@ def main():
         print("Epoch %d Pha Test Loss: %.3f" % (epoch, pha_loss), flush=True)
     
     # Save models after done training
+    print("Saving models...")
     magnitude_model.save('../model/magnitude_model')
     phase_model.save('../model/phase_model')
     # Load models for visualization
+    print("Loading models...")
     mag_model = tf.keras.models.load_model("../model/magnitude_model")
     pha_model = tf.keras.models.load_model("../model/phase_model")
     # Visualize one example from the testing set
+    print("Visualizing models...")
     visualize_testing_example(mag_model, pha_model, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha, 0)
     # Upload visualized examples
+    print("Uploading results...")
     test_files = ["artif_song_testn_0.wav", "artif_spect_testn_0.png", "artif_testn_0.npy", "mash_song_testn_0.wav", "mash_spect_testn_0.png", "mash_testn_0.npy", 
         "orig_song_testn_0_1.wav", "orig_song_testn_0_2.wav", "orig_spect_testn_0_1.png", "orig_spect_testn_0_2.png", "orig_testn_0.npy"]
     for fname in test_files:
