@@ -171,12 +171,12 @@ def main():
     
     # Save models after done training
     print("Saving models...", flush=True)
-    magnitude_model.save('../model/magnitude_model2')
-    phase_model.save('../model/phase_model2')
+    magnitude_model.save('../model/magnitude_model3')
+    phase_model.save('../model/phase_model3')
     # Load models for visualization
     print("Loading models...", flush=True)
-    mag_model = tf.keras.models.load_model("../model/magnitude_model2")
-    pha_model = tf.keras.models.load_model("../model/phase_model2")
+    mag_model = tf.keras.models.load_model("../model/magnitude_model3")
+    pha_model = tf.keras.models.load_model("../model/phase_model3")
     # Visualize one example from the testing set
     # print("Visualizing models...", flush=True)
     # visualize_testing_example(mag_model, pha_model, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha, 0)
