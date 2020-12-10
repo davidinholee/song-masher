@@ -119,10 +119,10 @@ def get_data(file_path_orig, file_path_mash, split):
     """
 
     # Read in magnitude and phase arrays for both original and mashed songs
-    originals = np.load(file_path_orig, allow_pickle=True)
+    originals = np.load(file_path_orig)
     orig_mag = originals[0]
     orig_pha = originals[1]
-    mashes = np.load(file_path_mash, allow_pickle=True)
+    mashes = np.load(file_path_mash)
     mash_mag = mashes[0]
     mash_pha = mashes[1]
     split_index = int(orig_mag.shape[0]*split)
