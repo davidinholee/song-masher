@@ -1,8 +1,8 @@
 import os
 import numpy as np
 import math
-#from pydub import AudioSegment
-#from utils import *
+from pydub import AudioSegment
+from utils import *
 
 SAMPLE_RATE = 8000
 WINDOW_LENGTH = 512
@@ -49,10 +49,7 @@ def convert_mashup_to_array(file_path_in, file_path_out):
     # Normalize array so that magnitude values are between 0 and 1 (phase values are already normalized)
     signal[0] = signal[0] / MAG_MAX
     # Delete malformed rows
-    rows_to_delete = np.array([31, 75, 76, 94, 102, 106, 120, 126, 157, 170, 173, 196, 203, 214, 219, 227, 232, 235, 241, 243, 246, 
-    270, 280, 282, 304, 312, 317, 331, 338, 345, 350, 355, 356, 375, 377, 383, 393, 416, 433, 434, 451, 457, 467, 472, 481, 495, 
-    501, 508, 514, 522, 538, 539, 545, 549, 555, 565, 566, 575, 593, 612, 613, 616, 642, 644, 649, 660, 661, 164, 347, 477, 553,
-    668, 671, 674, 675, 682, 695, 703, 680, 740]) - 1
+    rows_to_delete = np.array([])
     signal = np.delete(signal, rows_to_delete, 1)
     # Save array to disk
     print(signal.shape)
@@ -97,10 +94,7 @@ def convert_original_to_array(file_path_in, file_path_out):
     # Normalize array so that magnitude values are between 0 and 1 (phase values are already normalized)
     signal[0] = signal[0] / MAG_MAX
     # Delete malformed rows
-    rows_to_delete = np.array([31, 75, 76, 94, 102, 106, 120, 126, 157, 170, 173, 196, 203, 214, 219, 227, 232, 235, 241, 243, 246, 
-    270, 280, 282, 304, 312, 317, 331, 338, 345, 350, 355, 356, 375, 377, 383, 393, 416, 433, 434, 451, 457, 467, 472, 481, 495, 
-    501, 508, 514, 522, 538, 539, 545, 549, 555, 565, 566, 575, 593, 612, 613, 616, 642, 644, 649, 660, 661, 164, 347, 477, 553,
-    668, 671, 674, 675, 682, 695, 703, 680, 740]) - 1
+    rows_to_delete = np.array([])
     signal = np.delete(signal, rows_to_delete, 1)
     # Save array to disk
     print(signal.shape)
@@ -139,11 +133,11 @@ def get_data(file_path_orig, file_path_mash, split):
     return train_orig_mag, train_orig_pha, train_mash_mag, train_mash_pha, test_orig_mag, test_orig_pha, test_mash_mag, test_mash_pha
     
 def prep():
-    #convert_original_to_array("../data/original-wav/", "../data/preprocessed/")
+    convert_original_to_array("../data/original-wav/", "../data/preprocessed/")
     convert_mashup_to_array("../data/mashup-wav/", "../data/preprocessed/")
     # Test to make sure data has been preprocessed correctly
-    #generate_spectrogram("../data/preprocessed/mashup.npy", "../data/spectrogram/test", "Test Spectrogram")
-    #generate_audio("../data/preprocessed/mashup.npy", "../data/audio/test")
+    generate_spectrogram("../data/preprocessed/mashup.npy", "../data/spectrogram/test", "Test Spectrogram")
+    generate_audio("../data/preprocessed/mashup.npy", "../data/audio/test")
 
 
 if __name__ == "__main__":
