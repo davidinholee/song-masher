@@ -45,7 +45,7 @@ def train(model, train_originals, train_mashes):
             artif_mashes = tf.reshape(artif_mashes, [artif_mashes.shape[0], artif_mashes.shape[1] * artif_mashes.shape[2]])
             mash_batch = tf.reshape(mash_batch, [mash_batch.shape[0], mash_batch.shape[1] * mash_batch.shape[2]])
             loss = model.loss_function(artif_mashes, mash_batch)
-            print("Batch " + str(int(i/model.batch_size)) + " Loss: %.4f" % (loss.numpy()), flush=True)
+            print("Batch " + str(int(i/model.batch_size)) + " Loss: %.6f" % (loss.numpy()), flush=True)
 
         # Apply gradients
         gradients = tape.gradient(loss, model.trainable_variables)
@@ -166,8 +166,8 @@ def main():
         #pha_loss = test(phase_model, test_orig_pha, test_mash_pha)
         mag_loss = test(magnitude_model, train_orig_mag, train_mash_mag)
         pha_loss = test(phase_model, train_orig_pha, train_mash_pha)
-        print("Epoch %d Mag Test Loss: %.3f" % (epoch, mag_loss), flush=True)
-        print("Epoch %d Pha Test Loss: %.3f" % (epoch, pha_loss), flush=True)
+        print("Epoch %d Mag Test Loss: %.6f" % (epoch, mag_loss), flush=True)
+        print("Epoch %d Pha Test Loss: %.6f" % (epoch, pha_loss), flush=True)
     
     # Save models after done training
     print("Saving models...", flush=True)
