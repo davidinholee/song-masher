@@ -8,7 +8,7 @@ class SongMasher(tf.keras.Model):
         super(SongMasher, self).__init__()
 
         # Define hyperparameters
-        self.batch_size = 50
+        self.batch_size = 100
         self.learning_rate = 0.01
         self.embedding_size = 256
         self.width = spectrogram_width
@@ -65,7 +65,7 @@ class SongMasher(tf.keras.Model):
 
         :param artif: artificial spectrogram generated from model
         :param real: real spectrogram downloaded from YouTube
-        :return: 1 - cross correlation between the two spectrograms
+        :return: mean squared error of the two spectrograms
         """
 
         return tf.reduce_mean(tf.square(artif - real))
