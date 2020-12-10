@@ -34,7 +34,6 @@ def train(model, train_originals, train_mashes):
 
     # Iterate through each batch
     for i in range(0, train_originals.shape[0], model.batch_size):
-        print("Sample " + str(i), flush=True)
         # Get batch of data
         orig_batch1 = tf.cast(train_originals1[i:i+model.batch_size], np.float32)
         orig_batch2 = tf.cast(train_originals2[i:i+model.batch_size], np.float32)
@@ -43,10 +42,10 @@ def train(model, train_originals, train_mashes):
         # Calculate predictions and loss
         with tf.GradientTape() as tape:
             artif_mashes = model([orig_batch1, orig_batch2])
-            print(artif_mashes.shape, flush=True)
             artif_mashes = tf.reshape(artif_mashes, [artif_mashes.shape[0], artif_mashes.shape[1] * artif_mashes.shape[2]])
             mash_batch = tf.reshape(mash_batch, [mash_batch.shape[0], mash_batch.shape[1] * mash_batch.shape[2]])
             loss = model.loss_function(artif_mashes, mash_batch)
+            print("Batch " + str(int(i/model.batch_size)) + " Loss: %.4f" % (loss.numpy()), flush=True)
 
         # Apply gradients
         gradients = tape.gradient(loss, model.trainable_variables)
@@ -160,7 +159,7 @@ def main():
     magnitude_model = SongMasher(train_orig_mag.shape[2], train_orig_mag.shape[3])
     phase_model = SongMasher(train_orig_pha.shape[2], train_orig_pha.shape[3])
     # Train and test model for 100 epochs.
-    for epoch in range(10):
+    for epoch in range(50):
         train(magnitude_model, train_orig_mag, train_mash_mag)
         train(phase_model, train_orig_pha, train_mash_pha)
         #mag_loss = test(magnitude_model, test_orig_mag, test_mash_mag)
