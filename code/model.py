@@ -4,12 +4,12 @@ import model_funcs as transformer
 from scipy import signal
 
 class SongMasher(tf.keras.Model):
-    def __init__(self, spectrogram_width, spectrogram_height):
+    def __init__(self, spectrogram_width, spectrogram_height, learning_rate):
         super(SongMasher, self).__init__()
 
         # Define hyperparameters
         self.batch_size = 100
-        self.learning_rate = 0.001
+        self.learning_rate = learning_rate
         self.embedding_size = 256
         self.width = spectrogram_width
         self.height = spectrogram_height
