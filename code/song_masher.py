@@ -34,6 +34,7 @@ def train(model, train_originals, train_mashes):
 
     # Iterate through each batch
     for i in range(0, train_originals.shape[0], model.batch_size):
+        print("Sample " + str(i), flush=True)
         # Get batch of data
         orig_batch1 = tf.cast(train_originals1[i:i+model.batch_size], np.float32)
         orig_batch2 = tf.cast(train_originals2[i:i+model.batch_size], np.float32)
@@ -42,8 +43,9 @@ def train(model, train_originals, train_mashes):
         # Calculate predictions and loss
         with tf.GradientTape() as tape:
             artif_mashes = model([orig_batch1, orig_batch2])
-            artif_mashes = tf.reshape(artif_mashes, [model.batch_size, artif_mashes.shape[1] * artif_mashes.shape[2]])
-            mash_batch = tf.reshape(mash_batch, [model.batch_size, mash_batch.shape[1] * mash_batch.shape[2]])
+            print(artif_mashes.shape, flush=True)
+            artif_mashes = tf.reshape(artif_mashes, [artif_mashes.shape[0], artif_mashes.shape[1] * artif_mashes.shape[2]])
+            mash_batch = tf.reshape(mash_batch, [mash_batch.shape[0], mash_batch.shape[1] * mash_batch.shape[2]])
             loss = model.loss_function(artif_mashes, mash_batch)
 
         # Apply gradients
@@ -73,7 +75,6 @@ def test(model, test_originals, test_mashes):
     losses = []
     # Iterate through each batch
     for i in range(0, test_originals.shape[0], model.batch_size):
-        print("Sample " + str(i), flush=True)
         # Get batch of data
         orig_batch1 = tf.cast(test_originals1[i:i+model.batch_size], np.float32)
         orig_batch2 = tf.cast(test_originals2[i:i+model.batch_size], np.float32)
