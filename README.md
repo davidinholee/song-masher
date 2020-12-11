@@ -1,5 +1,5 @@
-## Machine Mashups: A Transformer-based approach to song combination
-### By: James Cai, Kate Nelson, David Inho Lee, Amanda Lee
+## Machine Mashups: A Transformer-Based Approach to Song Combination
+By: James Cai, Kate Nelson, David Inho Lee, Amanda Lee
 
 ### Introduction
 The motivation for this project stemmed from watching and listening to mashups of popular songs on Youtube. A mashup song is a blend of two or more songs, spliced and superimposed to create a new piece of music. Whether it is a Ed Sheeren x Taylor Swift mix or BTS x Lauv song, these unique combinations can be fun to listen to and work surprisingly well together. Furthermore, producing mashups is a popular hobby or career — professional musicians and amateur content creators alike invest up to days, or even weeks, to create just one mashup. 
